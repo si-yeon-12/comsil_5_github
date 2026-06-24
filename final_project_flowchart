@@ -1,0 +1,36 @@
+graph TD
+    %% 시작 및 초기화
+    Start([프로그램 시작]) --> OpenFile[메뉴: .maz 파일 Open]
+    OpenFile --> ParseMap[맵 파싱 및 가중치 그래프 생성]
+    ParseMap --> GenTile[늪지대/얼음판 특수 타일 무작위 배치]
+    GenTile --> Init[플레이어/추격자 위치 및 타이머 초기화]
+    Init --> GameLoop{메인 게임 루프<br/>update & draw}
+
+    %% 플레이어 로직 흐름
+    GameLoop -->|방향키 입력 감지| CheckDelay{늪지대 딜레이<br/>시간이 지났는가?}
+    CheckDelay -- Yes --> MovePlayer[플레이어 좌표 한 칸 이동]
+    CheckDelay -- No --> GameLoop
+    MovePlayer --> UpdateDelay[새로 밟은 타일에 맞춰<br/>다음 딜레이 시간 갱신]
+    UpdateDelay --> CheckClear{우측 하단<br/>도착점 도달?}
+    
+    CheckClear -- Yes --> GameClear([GAME CLEAR!])
+    CheckClear -- No --> GameLoop
+
+    %% 추격자 로직 흐름
+    GameLoop -->|매 프레임 시간 확인| Check3Sec{게임 시작 후<br/>3초가 지났는가?}
+    Check3Sec -- Yes --> CheckChaserInterval{현재 밟은 타일의<br/>이동 주기 도달?}
+    Check3Sec -- No --> GameLoop
+    
+    CheckChaserInterval -- Yes --> Dijkstra[다익스트라 알고리즘 기반<br/>최단 가중치 경로 계산]
+    Dijkstra --> MoveChaser[추격자 최적 경로로 한 칸 이동]
+    MoveChaser --> CheckGameOver{플레이어 좌표와<br/>일치하는가?}
+    
+    CheckGameOver -- Yes --> GameOver([GAME OVER!])
+    CheckGameOver -- No --> GameLoop
+    CheckChaserInterval -- No --> GameLoop
+
+    %% 스타일링 (옵션)
+    style Start fill:#f9f,stroke:#333,stroke-width:2px
+    style GameClear fill:#bbf,stroke:#333,stroke-width:2px
+    style GameOver fill:#fbb,stroke:#333,stroke-width:2px
+    style GameLoop fill:#dfd,stroke:#333,stroke-width:2px
